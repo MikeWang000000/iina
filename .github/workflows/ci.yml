@@ -15,16 +15,19 @@ jobs:
         run: ./other/download_libs.sh
 
       - name: Build
-        run: xcodebuild -project iina.xcodeproj -scheme iina CODE_SIGNING_ALLOWED=NO
+        run: xcodebuild -project iina.xcodeproj -scheme iina -config Release -archivePath ./archive archive
         env:
           DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
 
-      - name: Install dependencies
-        run: tar czvf ${{ github.workspace }}/IINA.app.tar.gz /Users/runner/Library/Developer/Xcode/DerivedData/iina-*/Build/Products/Debug/IINA.app
+      - name: Create tarball
+        run: |
+          rm -rf ./IINA.app
+          mv ./archive.xcarchive/Products/Applications/IINA.app .
+          otool -L ./IINA.app/Contents/MacOS/IINA
+          tar czvf ${{ github.workspace }}/IINA.app.tar.gz ./IINA.app
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: IINA
+          name: IINA_${{ matrix.xcode }}
           path: ${{ github.workspace }}/IINA.app.tar.gz
-
